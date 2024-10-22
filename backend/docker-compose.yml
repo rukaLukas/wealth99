@@ -6,10 +6,15 @@ services:
     container_name: 99wealth_api
     restart: unless-stopped
     tty: true
-    # depends_on:
-    #   - mysql
-    # ports:
-    #   - "8080:80"
+    environment:
+      - DB_CONNECTION=pgsql
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_DATABASE=${WEALTH_DB_DATABASE}
+      - DB_USERNAME=${WEALTH_DB_USERNAME}
+      - DB_PASSWORD=${WEALTH_DB_PASSWORD}
+    depends_on:
+      - timescaledb    
     volumes:
       - .:/var/www/html
     networks:
@@ -37,14 +42,15 @@ services:
     container_name: 99wealth_timescaledb
     environment:
       POSTGRES_DB: 99wealth
-      POSTGRES_USER: 99wealth
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: ${WEALTH_DB_USERNAME}
+      POSTGRES_PASSWORD: ${WEALTH_DB_PASSWORD}
     ports:
       - "5432:5432"
     networks:
       - app-network
     volumes:
-      - timescale_data:/var/lib/postgresql/data
+      - ./postgres:/var/lib/postgresql/data
+      # - timescale_data:/var/lib/postgresql/data
 
 
   redis:
@@ -58,5 +64,5 @@ services:
 networks:
   app-network:
 
-volumes:
-  timescale_data:
+# volumes:
+#   timescale_data:

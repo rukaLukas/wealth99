@@ -11,10 +11,12 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     unzip \
-    git
+    git \
+    libpq-dev \  
+    postgresql-client
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd zip
+RUN docker-php-ext-install pdo pdo_pgsql pgsql mbstring exif pcntl bcmath gd zip
 
 # Set working directory
 WORKDIR /var/www/html
