@@ -47,7 +47,7 @@ class FireFetchHistory extends Command
             $coins = Coin::all()->pluck(['coin_id'])->toArray();
             
             // The number of days of historical data you want to fetch            
-            $days = $this->option('days') ? (int)$this->option('days') : env('DAYS_HISTORY', 365);            
+            $days = $this->option('days') ? (int)$this->option('days') : env('DAYS_HISTORY', 365);         
             
             $apiKey = env('COINGECKO_API_KEY');            
 

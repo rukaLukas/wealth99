@@ -49,13 +49,13 @@ class CoinGeckoApiService implements CoinGeckoApiServiceInterface
     {
         $timestamp = Carbon::createFromTimestamp($from);
         if ($this->cacheService->exists($coin, $timestamp)) {
-            Log::info("Price data for {$coin} at {$timestamp} exists in cache. Skipping API call.");
+            Log::info("Price data for {$coin} at {$timestamp} exists in cache. Skipping API call.");            
             return [];
         }
         $url = $this->url . "coins/{$coin}/market_chart/range?vs_currency=usd&from={$from}&to={$to}";
         $response = $this->makeApiRequest($url, $apiKey);
-
-        return $response;        
+       
+        return $response['prices'];        
     }
 
     /**
@@ -104,7 +104,7 @@ class CoinGeckoApiService implements CoinGeckoApiServiceInterface
     }
 
     private function makeApiRequest(string $url, string $apiKey) {        
-        try {
+        try {            
             return $this->client->get($url, [
                 'headers' => [
                     'x-cg-demo-api-key' => $apiKey,

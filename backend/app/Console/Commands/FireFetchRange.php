@@ -14,7 +14,7 @@ class FireFetchRange extends Command
      *
      * @var string
      */
-    protected $signature = 'fire:range {--coin=} {--date=}';
+    protected $signature = 'fire:range {--date=}';
 
     /**
      * The console command description.
@@ -41,14 +41,15 @@ class FireFetchRange extends Command
     public function handle()
     {
         try {          
-            $coin = $this->option('coin');
+            // $coin = $this->option('coin');
+            $coins = ['bitcoin']; 
             $date = $this->option('date');            
             // The number of days of historical data you want to fetch            
             // $date = Carbon::createFromDate($date); 
             // dd($date);
             $apiKey = env('COINGECKO_API_KEY');            
 
-            FetchCoinDataForDate::dispatch($coin, $date, $apiKey);            
+            FetchCoinDataForDate::dispatch($coins, $date, $apiKey);            
             return 0;
         } catch(Exception $e) {
             $this->error($e->getMessage());
