@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Database\Seeder;
-use Database\Seeders\CoinsTableSeeder;
+use Database\Seeds\CoinsTableSeeder;
 
 class DatabaseSeeder extends Seeder
 {
