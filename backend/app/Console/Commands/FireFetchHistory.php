@@ -3,9 +3,11 @@
 namespace App\Console\Commands;
 
 use Exception;
+use App\Models\Coin;
 use Illuminate\Support\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Redis;
 use App\Jobs\FetchHistoricalCryptoData;
 
 class FireFetchHistory extends Command
@@ -15,7 +17,7 @@ class FireFetchHistory extends Command
      *
      * @var string
      */
-    protected $signature = 'fire:history';
+    protected $signature = 'fire:history {--days=}';
 
     /**
      * The console command description.
@@ -41,24 +43,15 @@ class FireFetchHistory extends Command
      */
     public function handle()
     {
-        try {
-            // $coins = [
-            //     'bitcoin','bitcoin-cash','litecoin','etherium'
-            //     // Add other coins here...
-            // ];
-            // dd(env('COINS'));
-            $coins = [];
-            $coins[] = env('COINS');
-            dd($coins);
+        try {          
+            $coins = Coin::all()->pluck(['coin_id'])->toArray();
             
-            // The number of days of historical data you want to fetch
-            $days = 5;
+            // The number of days of historical data you want to fetch            
+            $days = $this->option('days') ? (int)$this->option('days') : env('DAYS_HISTORY', 365);            
             
-            // Your CoinGecko API key
             $apiKey = env('COINGECKO_API_KEY');            
 
-            FetchHistoricalCryptoData::dispatch($coins, $days, $apiKey);
-            // dump(__LINE__);
+            FetchHistoricalCryptoData::dispatch($coins, $days, $apiKey);            
             return 0;
         } catch(Exception $e) {
             $this->error($e->getMessage());

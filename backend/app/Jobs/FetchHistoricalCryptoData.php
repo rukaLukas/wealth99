@@ -75,16 +75,18 @@ class FetchHistoricalCryptoData implements ShouldQueue
             $date = $this->coinGeckoApiService->convertTimestampToDate($priceData[0]);
 
             // Check Redis cache
-            // if ($this->cacheService->exists($coin, $date)) {
-            //     Log::info("Price for {$coin} at {$date} already cached.");
-            //     continue;
-            // }
+            if ($this->cacheService->exists($coin, $date)) {
+                Log::info("Price for {$coin} at {$date} already cached.");
+                continue;
+            }
 
             // Prepare data for insertion
             $insertData[] = [
                 'symbol' => $coin,
                 'price' => $priceData[1],
                 'last_updated_at' => $date,
+                'created_at' => now(),
+                'updated_at' => now()
             ];
         }
 
@@ -92,9 +94,9 @@ class FetchHistoricalCryptoData implements ShouldQueue
             $this->cryptoPriceRepository->storePricesInBulk($insertData);
 
             // Cache the data in Redis
-            // foreach ($insertData as $data) {
-            //     $this->cacheService->store($data['symbol'], $data['last_updated_at'], $data);
-            // }
+            foreach ($insertData as $data) {
+                $this->cacheService->store($data['symbol'], $data['last_updated_at'], $data);
+            }
         }
     }
 }

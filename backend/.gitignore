@@ -6,6 +6,8 @@
 /.idea
 /.vscode
 /.vagrant
+/postgres
+/redis
 Homestead.json
 Homestead.yaml
 npm-debug.log

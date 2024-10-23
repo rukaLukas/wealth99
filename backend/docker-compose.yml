@@ -13,6 +13,7 @@ services:
       - DB_DATABASE=${WEALTH_DB_DATABASE}
       - DB_USERNAME=${WEALTH_DB_USERNAME}
       - DB_PASSWORD=${WEALTH_DB_PASSWORD}
+      - REDIS_PASSWORD=${WEALTH_REDIS_PASSWORD}
     depends_on:
       - timescaledb    
     volumes:
@@ -49,15 +50,21 @@ services:
     networks:
       - app-network
     volumes:
-      - ./postgres:/var/lib/postgresql/data
-      # - timescale_data:/var/lib/postgresql/data
+      - ${WEALTH_TIMESCALEDB_VOLUME}:/var/lib/postgresql/data
 
 
   redis:
     image: redis:alpine
     container_name: 99wealth_redis
+    restart: unless-stopped
+    tty: true
     ports:
       - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=${WEALTH_REDIS_PASSWORD} 
+    command: redis-server --requirepass ${WEALTH_REDIS_PASSWORD}
+    volumes:
+      - ${WEALTH_REDIS_VOLUME}:/data
     networks:
       - app-network
 

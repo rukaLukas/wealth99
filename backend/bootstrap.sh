@@ -6,6 +6,7 @@
 # Run Laravel migrations and hypertable creation
 php artisan migrate
 php artisan convert:hypertable
+php artisan db:seed
 
 # Keep the container running
 exec "$@"
