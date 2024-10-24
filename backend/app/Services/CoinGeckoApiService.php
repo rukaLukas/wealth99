@@ -74,7 +74,7 @@ class CoinGeckoApiService implements CoinGeckoApiServiceInterface
 
         // Check for coins not cached
         foreach ($coins as $coin) {            
-            if (!$this->cacheService->exists($coin, $timestamp)) {
+            if (!$this->cacheService->exists($coin . '_recent', $timestamp)) {
                 $uncachedCoins[] = $coin;  // Add to uncached coins list
             }
         }        

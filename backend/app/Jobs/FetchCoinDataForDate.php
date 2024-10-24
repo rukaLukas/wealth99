@@ -9,22 +9,22 @@ class FetchCoinDataForDate extends AbstractCryptoJob
 {
     protected $dateTime;
 
-    public function __construct(array $coin, string $dateTime, string $apiKey)
-    {
-        parent::__construct($coin, $apiKey);
-        $this->dateTime = $dateTime;
+    public function __construct(array $coins, string $dateTime, string $apiKey)
+    {        
+        parent::__construct($coins, $apiKey);        
+        $this->dateTime = $dateTime;              
     }
 
     protected function fetchData(CoinGeckoApiServiceInterface $service)
     {
         $from = Carbon::createFromFormat('Y-m-d H:i', $this->dateTime)->timestamp;
-        $to = Carbon::createFromFormat('Y-m-d H:i', $this->dateTime)->addMinutes(2)->timestamp;
+        $to = Carbon::createFromFormat('Y-m-d H:i', $this->dateTime)->addMinutes(5)->timestamp;
         $prices = [];                
         foreach ($this->coins as $coin) {  
             $prices[$coin] = $service->fetchPriceForRange($coin, $from, $to, $this->apiKey);
+            dump($coin);
         }
-        return $prices;
-        // return $service->fetchPriceForRange($this->coins, $from, $to, $this->apiKey);
+        return $prices;        
     }
 
     /**
@@ -39,6 +39,7 @@ class FetchCoinDataForDate extends AbstractCryptoJob
     {        
         // dd(__LINE__, $prices);
         foreach ($prices as $id => $priceData) {  
+            // dd($priceData);
             // dd($id, $priceData, $priceData[count($priceData) - 1]); 
             $priceItem = $priceData[count($priceData) - 1];
             $timestamp = Carbon::createFromTimestampMs($priceItem[0]);

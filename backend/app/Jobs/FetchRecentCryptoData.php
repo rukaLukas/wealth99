@@ -13,7 +13,7 @@ class FetchRecentCryptoData extends AbstractCryptoJob
     public $retryAfter = 5;
     
     protected function fetchData(CoinGeckoApiServiceInterface $service)
-    {
+    {        
         Log::info('run fetchRecentCryptoData!!!!!!');
         dump('run fetchRecentCryptoData!!!!!!');
         return $service->fetchRecent($this->coins, $this->apiKey);
@@ -38,7 +38,7 @@ class FetchRecentCryptoData extends AbstractCryptoJob
             $cryptoPriceRepository->storePrice($coin, $price, $timestamp);
 
             // Cache the price data in Redis
-            $cacheService->store($coin, $timestamp, ['price' => $price]);
+            $cacheService->store($coin . "_recent", null, ['price' => $price]);
         }
     }
 }

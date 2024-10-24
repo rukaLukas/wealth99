@@ -4,14 +4,16 @@ namespace App\Providers;
 
 use GuzzleHttp\Client;
 use App\Services\CacheService;
+use App\Services\CoinPriceService;
 use App\Services\GuzzleHttpClient;
 use App\Services\CoinGeckoApiService;
 use Illuminate\Support\ServiceProvider;
+use App\Repositories\CryptoPriceRepository;
 use App\Services\Interfaces\HttpClientInterface;
 use App\Services\Interfaces\CacheServiceInterface;
+use App\Services\Interfaces\CoinPriceServiceInterface;
 use App\Services\Interfaces\CoinGeckoApiServiceInterface;
 use App\Repositories\Interfaces\CryptoPriceRepositoryInterface;
-use App\Repositories\CryptoPriceRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -39,5 +41,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(CoinGeckoApiServiceInterface::class, CoinGeckoApiService::class);
         $this->app->bind(CryptoPriceRepositoryInterface::class, CryptoPriceRepository::class);
         $this->app->bind(CacheServiceInterface::class, CacheService::class);
+        $this->app->bind(CoinPriceServiceInterface::class, CoinPriceService::class);
     }
 }
