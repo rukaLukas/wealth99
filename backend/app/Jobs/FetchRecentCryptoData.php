@@ -1,9 +1,10 @@
 <?php
 namespace App\Jobs;
 
-use App\Jobs\AbstractCryptoJob;
 use Illuminate\Support\Carbon;
+use App\Jobs\AbstractCryptoJob;
 
+use Illuminate\Support\Facades\Log;
 use App\Services\Interfaces\CoinGeckoApiServiceInterface;
 
 class FetchRecentCryptoData extends AbstractCryptoJob
@@ -13,6 +14,8 @@ class FetchRecentCryptoData extends AbstractCryptoJob
     
     protected function fetchData(CoinGeckoApiServiceInterface $service)
     {
+        Log::info('run fetchRecentCryptoData!!!!!!');
+        dump('run fetchRecentCryptoData!!!!!!');
         return $service->fetchRecent($this->coins, $this->apiKey);
     }
 

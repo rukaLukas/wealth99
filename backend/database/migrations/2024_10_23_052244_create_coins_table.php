@@ -14,9 +14,10 @@ class CreateCoinsTable extends Migration
     public function up()
     {
         Schema::create('coins', function (Blueprint $table) {
-            $table->increments('id');
+            $table->increments('id');            
             $table->string('symbol')->nullable(false);
             $table->string('coin_id')->nullable(false);
+            $table->unique('symbol');
         });
     }
 

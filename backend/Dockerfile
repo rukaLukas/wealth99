@@ -13,16 +13,18 @@ RUN apt-get update && apt-get install -y \
     unzip \
     git \
     libpq-dev \  
-    postgresql-client
+    postgresql-client \
+    cron \
+    vim
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_pgsql pgsql mbstring exif pcntl bcmath gd zip
 
 # Set working directory
-WORKDIR /var/www/html
+WORKDIR /var/www
 
 # Copy existing application directory contents to the working directory
-COPY . /var/www/html
+COPY . /var/www
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

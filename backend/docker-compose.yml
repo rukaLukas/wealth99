@@ -17,7 +17,7 @@ services:
     depends_on:
       - timescaledb    
     volumes:
-      - .:/var/www/html
+      - .:/var/www
     networks:
       - app-network
 
@@ -33,7 +33,7 @@ services:
     ports:
       - 8181:8181
     volumes:
-      - ./:/var/www/html/
+      - ./:/var/www/
       - ./nginx/conf.d/:/etc/nginx/conf.d/
     networks:
       - app-network
