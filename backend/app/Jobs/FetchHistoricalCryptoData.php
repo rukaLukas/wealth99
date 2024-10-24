@@ -2,13 +2,9 @@
 namespace App\Jobs;
 
 
-use App\Services\Interfaces\CoinGeckoApiServiceInterface;
 use Illuminate\Support\Carbon;
-
-use Illuminate\Support\Facades\Log;
-
 use App\Jobs\AbstractCryptoJob;
-
+use App\Services\Interfaces\CoinGeckoApiServiceInterface;
 
 class FetchHistoricalCryptoData extends AbstractCryptoJob
 {
@@ -24,41 +20,37 @@ class FetchHistoricalCryptoData extends AbstractCryptoJob
     {
         $prices = [];                
         foreach ($this->coins as $coin) {  
-            $prices[$coin] = $service->fetchHistoricalPrices($coin, $this->days, $this->apiKey);
-            dd($prices);
+            $prices[$coin] = $service->fetchHistoricalPrices($coin, $this->days, $this->apiKey)['prices'];
+            // $this->processPrices2($prices);
+            // dd($prices);
         }
         return $prices;
         // return $service->fetchHistoricalPrices($this->coins, $this->days, $this->apiKey);
     }
 
     protected function processPrices($prices, $cryptoPriceRepository, $cacheService)
-    {
-        dd($prices);
-        $insertData = [];
-        foreach ($prices as $id => $priceData) {
-            $date = Carbon::createFromTimestampMs($priceData[0]);
+    {      
+        $results = [];
+        foreach ($prices as $symbol => $prices) {
+            $transformedPrices = array_map(function($priceData) use ($symbol) {
+                return [
+                    'symbol' => $symbol,
+                    'price' => $priceData[1],
+                    'last_updated_at' => Carbon::createFromTimestampMs($priceData[0]), // Convert Unix timestamp in milliseconds
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+            }, $prices);
+        
+            // Merge transformed prices into results
+            $results = array_merge($results, $transformedPrices);
+        }       
 
-            // Check Redis cache
-            if ($cacheService->exists($id, $date)) {
-                Log::info("Price for {$id} at {$date} already cached.");
-                continue;
-            }
-
-            // Prepare data for insertion
-            $insertData[] = [
-                'symbol' => $id,
-                'price' => $priceData[1],
-                'last_updated_at' => $date,
-                'created_at' => now(),
-                'updated_at' => now()
-            ];
-        }
-
-        if (!empty($insertData)) {
-            $cryptoPriceRepository->storePricesInBulk($insertData);
+        if (!empty($results)) {
+            $cryptoPriceRepository->storePricesInBulk($results);
 
             // Cache the data in Redis
-            foreach ($insertData as $data) {
+            foreach ($results as $data) {
                 $cacheService->store($data['symbol'], $data['last_updated_at'], $data);
             }
         }

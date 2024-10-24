@@ -42,8 +42,7 @@ class FireFetchRecent extends Command
     public function handle()
     {
         try {  
-            // $coins = Coin::all()->pluck(['coin_id'])->toArray();
-            $coins = ['bitcoin','litecoin'];       
+            $coins = Coin::all()->pluck(['coin_id'])->toArray();
             $apiKey = env('COINGECKO_API_KEY');            
 
             FetchRecentCryptoData::dispatch($coins, $apiKey);            

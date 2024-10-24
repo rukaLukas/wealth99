@@ -3,6 +3,7 @@ namespace App\Services;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use GuzzleHttp\Exception\RequestException;
 use App\Services\Interfaces\HttpClientInterface;
 use App\Services\Interfaces\CacheServiceInterface;
 use App\Services\Interfaces\CoinGeckoApiServiceInterface;
@@ -31,8 +32,9 @@ class CoinGeckoApiService implements CoinGeckoApiServiceInterface
     public function fetchHistoricalPrices(string $coin, int $days, string $apiKey): array
     {
         $url = $this->url . "coins/{$coin}/market_chart?vs_currency=usd&days={$days}&interval=daily";
+        // dump($url);
         $response = $this->makeApiRequest($url, $apiKey);
-
+        // dd($response);
         return $response;        
     }
 
@@ -98,13 +100,8 @@ class CoinGeckoApiService implements CoinGeckoApiServiceInterface
         return $response;
     }
 
-    public function convertTimestampToDate(int $timestamp): Carbon
-    {
-        return Carbon::createFromTimestampMs($timestamp);
-    }
-
     private function makeApiRequest(string $url, string $apiKey) {        
-        try {            
+        try {                
             return $this->client->get($url, [
                 'headers' => [
                     'x-cg-demo-api-key' => $apiKey,
@@ -112,6 +109,7 @@ class CoinGeckoApiService implements CoinGeckoApiServiceInterface
             ]);            
         } catch (\Exception $e) {
             throw new \RuntimeException("Error fetching prices: " . $e->getMessage());
+            Log::error($e->getMessage());
         }
     }
 }
