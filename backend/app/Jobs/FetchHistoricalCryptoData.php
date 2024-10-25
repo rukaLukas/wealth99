@@ -2,13 +2,16 @@
 namespace App\Jobs;
 
 
+use Exception;
 use Illuminate\Support\Carbon;
 use App\Jobs\AbstractCryptoJob;
+use Illuminate\Support\Facades\Log;
 use App\Services\Interfaces\CoinGeckoApiServiceInterface;
 
 class FetchHistoricalCryptoData extends AbstractCryptoJob
 {
     protected $days;
+    public $timeout = 600;
 
     public function __construct(array $coins, int $days, string $apiKey)
     {
@@ -18,13 +21,18 @@ class FetchHistoricalCryptoData extends AbstractCryptoJob
 
     protected function fetchData(CoinGeckoApiServiceInterface $service)
     {
-        $prices = [];                
-        foreach ($this->coins as $coin) {  
-            $prices[$coin] = $service->fetchHistoricalPrices($coin, $this->days, $this->apiKey)['prices'];
-            // $this->processPrices2($prices);
-            // dd($prices);
-        }
-        return $prices;
+        $prices = [];  
+        try {
+            foreach ($this->coins as $coin) {  
+                Log::info("fetching {$this->days} history prices from $coin");
+                $prices[$coin] = $service->fetchHistoricalPrices($coin, $this->days, $this->apiKey)['prices'];
+                // $this->processPrices2($prices);
+                // dd($prices);
+            }
+            return $prices;
+        } catch(Exception $e) {
+            Log::error("Failed to get historical price " . $e->getMessage());
+        }            
         // return $service->fetchHistoricalPrices($this->coins, $this->days, $this->apiKey);
     }
 

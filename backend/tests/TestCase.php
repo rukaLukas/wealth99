@@ -15,9 +15,10 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();  
+        config(['database.connections.pgsql.host' => 'timescaledb_test']);
+        config(['database.connections.pgsql.port' => '5432']);
         if (!Schema::hasTable('migrations')) {
             Artisan::call('key:generate', ['--env' => 'testing']);
-            DB::statement('CREATE DATABASE IF NOT EXISTS test_database');
             Artisan::call('migrate', ['--env' => 'testing']);
         } 
         $this->url = '/api/v1/prices';

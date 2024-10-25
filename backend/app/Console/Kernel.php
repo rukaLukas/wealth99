@@ -2,7 +2,9 @@
 
 namespace App\Console;
 
+use Exception;
 use App\Models\Coin;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -25,15 +27,21 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->call(function () {
-            $coins = Coin::all()->pluck(['coin_id'])->toArray();
-            $apiKey = env('COINGECKO_API_KEY');
-    
-            // Dispatch the job with arguments
-            \App\Jobs\FetchRecentCryptoData::dispatch($coins, $apiKey)->onQueue('default');
-        })->name('fetch-recent-crypto-data')
-            ->everyMinute()
-            ->withoutOverlapping();
+        try {
+            Log::info("initializing schedule");
+            $schedule->call(function () {
+                $coins = Coin::all()->pluck(['coin_id'])->toArray();
+                $apiKey = env('COINGECKO_API_KEY');
+        
+                // Dispatch the job with arguments
+                \App\Jobs\FetchRecentCryptoData::dispatch($coins, $apiKey)->onQueue('recent');
+            })->name('fetch-recent-crypto-data')
+                ->everyMinute()
+                ->withoutOverlapping();
+        } catch(Exception $e) {
+            Log::error($e->getMessage());  
+            dump($e->getMessage());          
+        }
        
     }
 

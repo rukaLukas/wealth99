@@ -6,7 +6,7 @@
 # Run Laravel migrations and hypertable creation
 php artisan migrate
 php artisan convert:hypertable
-# php artisan db:seed
+php artisan db:seed
 
 # RUN setup cron
 ./setup_cron.sh

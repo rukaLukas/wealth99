@@ -10,14 +10,14 @@ services:
     #   - DB_CONNECTION=pgsql
     #   - DB_HOST=timescaledb
     #   - DB_PORT=5432
-      # - DB_DATABASE=${WEALTH_DB_DATABASE}
-      # - DB_USERNAME=${WEALTH_DB_USERNAME}
-      # - DB_PASSWORD=${WEALTH_DB_PASSWORD}
-      # - REDIS_PASSWORD=${WEALTH_REDIS_PASSWORD}
+    #   - DB_DATABASE=${WEALTH_DB_DATABASE}
+    #   - DB_USERNAME=${WEALTH_DB_USERNAME}
+    #   - DB_PASSWORD=${WEALTH_DB_PASSWORD}
+    #   - REDIS_PASSWORD=${WEALTH_REDIS_PASSWORD}
     env_file:
       - .docker-env
-    depends_on:
-      - timescaledb    
+    # depends_on:
+    #   - timescaledb    
     volumes:
       - .:/var/www
     networks:
@@ -53,6 +53,22 @@ services:
       - app-network
     volumes:
       - ${WEALTH_TIMESCALEDB_VOLUME}:/var/lib/postgresql/data
+      # - ./init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh
+
+  timescaledb_test:
+    image: timescale/timescaledb:latest-pg14
+    container_name: 99wealth_timescaledb_test
+    environment:
+      POSTGRES_DB: 99wealth
+      POSTGRES_USER: ${WEALTH_DB_USERNAME}
+      POSTGRES_PASSWORD: ${WEALTH_DB_PASSWORD}
+    ports:
+      - "5433:5432"
+    networks:
+      - app-network
+    volumes:
+      - ./db_test:/var/lib/postgresql/data
+      # - ./init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh
 
 
   redis:

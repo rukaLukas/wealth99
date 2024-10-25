@@ -14,7 +14,7 @@ class CoinGeckoApiService implements CoinGeckoApiServiceInterface
     protected $client;
     protected $url;
     protected $cacheService;
-
+    
     public function __construct(HttpClientInterface $client, CacheServiceInterface $cacheService)
     {
         $this->client = $client;
@@ -113,24 +113,25 @@ class CoinGeckoApiService implements CoinGeckoApiServiceInterface
      * @return array
      */
     public function fetchRecent(array $coins, string $apiKey): array
-    {
+    {        
         $timestamp = Carbon::now();
-        $uncachedCoins = [];
+        // $uncachedCoins = [];
 
         // Check for coins not cached
-        foreach ($coins as $coin) {            
-            if (!$this->cacheService->exists($coin . '_recent', $timestamp)) {
-                $uncachedCoins[] = $coin;  // Add to uncached coins list
-            }
-        }        
+        // foreach ($coins as $coin) {            
+        //     if (!$this->cacheService->exists($coin . '_recent', $timestamp)) {
+        //         $uncachedCoins[] = $coin;  // Add to uncached coins list
+        //     }
+        // }        
 
         // If all coins are cached, no need to make an API request
-        if (empty($uncachedCoins)) {
-            return [];
-        }        
+        // if (empty($uncachedCoins)) {
+        //     return [];
+        // }        
 
         // Make API request with only uncached coins
-        $coinsString = implode(',', $uncachedCoins); 
+        // $coinsString = implode(',', $uncachedCoins); 
+        $coinsString = implode(',', $coins); 
         $precision = env('COIN_GECKO_PRECISION', 8);
         $url = $this->url . "simple/price?ids={$coinsString}&vs_currencies=usd&precision={$precision}";        
         $response = $this->makeApiRequest($url, $apiKey);        

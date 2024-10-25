@@ -49,7 +49,7 @@ class GuzzleHttpClient implements HttpClientInterface
 
                 // Handle 429 Too Many Requests (rate-limited)
                 if ($response->getStatusCode() == 429) {
-                    Log::info("Rate limit exceeded. Waiting 1 minute before retrying...");                                       
+                    Log::info("Rate limit exceeded. Waiting 1 minute before retrying...");                                     
                     // Wait 1 minute before retrying
                     sleep(65);
                     $retryCount++;

@@ -11,6 +11,7 @@ class FetchRecentCryptoData extends AbstractCryptoJob
 {
     public $tries = 3;
     public $retryAfter = 5;
+    public $queue = 'recent';
     
     protected function fetchData(CoinGeckoApiServiceInterface $service)
     {        

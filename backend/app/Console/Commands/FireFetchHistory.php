@@ -44,10 +44,7 @@ class FireFetchHistory extends Command
     public function handle()
     {
         try {          
-            // $coins = Coin::all()->pluck(['coin_id'])->toArray();
-            $coins = Coin::all()->take(10)->pluck(['coin_id'])->toArray();
-            // $x = Carbon::createFromTimestampMs(1728950400000);
-            // dd($x);
+            $coins = Coin::all()->pluck(['coin_id'])->toArray();
             // The number of days of historical data you want to fetch            
             $days = $this->option('days') ? (int)$this->option('days') : env('DAYS_HISTORY', 365);         
             
