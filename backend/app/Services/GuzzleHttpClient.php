@@ -5,6 +5,8 @@ use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
 use GuzzleHttp\Exception\RequestException;
 use App\Services\Interfaces\HttpClientInterface;
+use Exception;
+use Illuminate\Http\Request;
 
 class GuzzleHttpClient implements HttpClientInterface
 {
@@ -16,6 +18,19 @@ class GuzzleHttpClient implements HttpClientInterface
         $this->client = $client;
         $this->maxRetries = env('MAX_RETRIES_REQUEST', 3);
     }   
+
+    // public function get(string $url, array $headers = []): array
+    // {
+    //     try {
+    //         $response = $this->client->request('GET', $url, [
+    //             'headers' => $headers,
+    //         ]);
+
+    //         return json_decode($response->getBody(), true);
+    //     } catch (RequestException $e) {
+    //         throw new \RuntimeException("Error during HTTP request: " . $e->getMessage());
+    //     }
+    // }
 
     public function get(string $url, array $headers = []): array
     {
@@ -29,26 +44,24 @@ class GuzzleHttpClient implements HttpClientInterface
                 // If the response is successful (HTTP 200 OK)
                 if ($response->getStatusCode() === 200) {
                     return json_decode($response->getBody()->getContents(), true);
+                    break;
                 }
 
                 // Handle 429 Too Many Requests (rate-limited)
                 if ($response->getStatusCode() == 429) {
-                    Log::info("Rate limit exceeded. Waiting 1 minute before retrying...");
-                    
+                    Log::info("Rate limit exceeded. Waiting 1 minute before retrying...");                                       
                     // Wait 1 minute before retrying
                     sleep(65);
                     $retryCount++;
                     continue;
                 }
-
                 // If the status code is not successful or 429, throw an exception
                 throw new \Exception('Request failed with status code ' . $response->getStatusCode());
             } catch (RequestException $e) {
-                // Handle network errors or other request exceptions
                 Log::error("HTTP Request failed: " . $e->getMessage());
-
+                
                 // Retry after 1 minute in case of errors or status 429
-                sleep(60);
+                sleep(65);
                 $retryCount++;
             }
         }

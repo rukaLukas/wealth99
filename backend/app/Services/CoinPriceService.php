@@ -3,40 +3,60 @@ namespace App\Services;
 
 use App\Models\Coin;
 use Illuminate\Support\Carbon;
+use App\Jobs\FetchCoinDataForDate;
+use Illuminate\Support\Facades\Log;
 use App\Services\Interfaces\CacheServiceInterface;
 use App\Services\Interfaces\CoinPriceServiceInterface;
+use App\Repositories\Interfaces\CryptoPriceRepositoryInterface;
 
 class CoinPriceService implements CoinPriceServiceInterface
 {
     protected $cacheService;
+    protected $repository;
 
-    public function __construct(CacheServiceInterface $cacheService)
+    public function __construct(CacheServiceInterface $cacheService, CryptoPriceRepositoryInterface $respository)
     {
         $this->cacheService = $cacheService;
+        $this->repository = $respository;
     }
 
     public function getRecents(): array
     {
-        $recents = [];
-        if (!$this->cacheService->exists('list_coins')) {
-            $coins = Coin::all()->pluck(['coin_id'])->toArray();
-            $this->cacheService->store('list_coins', null, $coins);
-        } 
-        
-        $coins = $this->cacheService->get('list_coins');
-        foreach($coins as $coin) {
-            if ($this->cacheService->exists($coin . '_recent')) {
-                $recents[] = [
-                    $coin => $this->cacheService->get($coin . '_recent')
-                ];
-            }            
-        }
+        $recents = [];       
+        if ($this->cacheService->exists('recent_prices')) {
+            $recents = $this->cacheService->get('recent_prices');
+        }   
         
         return $recents;
     }
     
-    public function getByRange(Carbon $date): ?array
+    public function getByDate(string $date): ?array
     {
-        return [];
+        $date = Carbon::parse($date);
+        if ($this->cacheService->exists('bydate', $date)) {
+            return $this->cacheService->get('bydate', $date);
+        }         
+        
+        $coins = $this->repository->getAllCoins();        
+        
+        // search this values into database
+        $prices = $this->repository->getByDate($coins, $date);
+        
+        // if not found into database call Job to get this custom data from coinGecko Api
+        if (count($prices) === 0) {
+            $apiKey = env('COINGECKO_API_KEY');
+            FetchCoinDataForDate::dispatch($coins, $date, $apiKey);
+
+            return [
+                    "message" => "Request accepted, processing will continue",
+                    "status"=> "pending",                
+                    "resource_url"=> "/api/v1/prices/{$date}",
+                    "estimated_time_seconds"=> 600
+                ];
+        }
+
+        $this->cacheService->store('bydate', $date, $prices);
+       
+        return $prices;
     }
 }

@@ -25,15 +25,15 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->call(function () {
-            $coins = Coin::all()->pluck(['coin_id'])->toArray();
-            $apiKey = env('COINGECKO_API_KEY');            // Fetch API key from .env
+        // $schedule->call(function () {
+        //     $coins = Coin::all()->pluck(['coin_id'])->toArray();
+        //     $apiKey = env('COINGECKO_API_KEY');            // Fetch API key from .env
     
-            // Dispatch the job with arguments
-            \App\Jobs\FetchRecentCryptoData::dispatch($coins, $apiKey)->onQueue('default');
-        })->name('fetch-recent-crypto-data')
-            ->everyMinute()
-            ->withoutOverlapping();
+        //     // Dispatch the job with arguments
+        //     \App\Jobs\FetchRecentCryptoData::dispatch($coins, $apiKey)->onQueue('default');
+        // })->name('fetch-recent-crypto-data')
+        //     ->everyMinute()
+        //     ->withoutOverlapping();
        
     }
 

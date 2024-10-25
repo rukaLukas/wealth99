@@ -1,13 +1,18 @@
 <?php
 namespace App\Jobs;
 
-use Carbon\Carbon;
+use Exception;
+use Illuminate\Support\Carbon;
 use App\Jobs\AbstractCryptoJob;
+use Illuminate\Support\Facades\Log;
 use App\Services\Interfaces\CoinGeckoApiServiceInterface;
 
 class FetchCoinDataForDate extends AbstractCryptoJob
 {
     protected $dateTime;
+    public $tries = 1;
+    // public $retryAfter = 65;
+    public $timeout = 600;
 
     public function __construct(array $coins, string $dateTime, string $apiKey)
     {        
@@ -17,14 +22,22 @@ class FetchCoinDataForDate extends AbstractCryptoJob
 
     protected function fetchData(CoinGeckoApiServiceInterface $service)
     {
-        $from = Carbon::createFromFormat('Y-m-d H:i', $this->dateTime)->timestamp;
-        $to = Carbon::createFromFormat('Y-m-d H:i', $this->dateTime)->addMinutes(5)->timestamp;
-        $prices = [];                
-        foreach ($this->coins as $coin) {  
-            $prices[$coin] = $service->fetchPriceForRange($coin, $from, $to, $this->apiKey);
-            dump($coin);
-        }
-        return $prices;        
+        try {
+            Log::info("Getting prices by date range");
+            $from = Carbon::createFromFormat('Y-m-d H:i:s', $this->dateTime)->timestamp;
+            $to = Carbon::createFromFormat('Y-m-d H:i:s', $this->dateTime)->addMinutes(15)->timestamp;
+            $prices = [];                
+            foreach ($this->coins as $coin) { 
+                dump("before call service->fetchPriceForRange $coin");
+                $prices[$coin] = $service->fetchPriceForRange($coin, $from, $to, $this->apiKey);
+                dump($coin);
+            }
+            return $prices;
+        } catch(Exception $e) {
+            Log::error("Fail to get prices by date range " . $e->getMessage());
+            dump("Fail to get prices by date range ", $e->getMessage());
+            throw $e;
+        }                    
     }
 
     /**
@@ -37,10 +50,7 @@ class FetchCoinDataForDate extends AbstractCryptoJob
      */
     protected function processPrices($prices, $cryptoPriceRepository, $cacheService)
     {        
-        // dd(__LINE__, $prices);
         foreach ($prices as $id => $priceData) {  
-            // dd($priceData);
-            // dd($id, $priceData, $priceData[count($priceData) - 1]); 
             $priceItem = $priceData[count($priceData) - 1];
             $timestamp = Carbon::createFromTimestampMs($priceItem[0]);
             $price = $priceItem[1];
@@ -51,5 +61,6 @@ class FetchCoinDataForDate extends AbstractCryptoJob
             // Cache the price data in Redis
             $cacheService->store($id, $timestamp, ['price' => $price]);
         }
+        Log::info("Store prices by date range into cache");    
     }
 }

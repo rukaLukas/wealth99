@@ -7,6 +7,7 @@ use App\Models\Coin;
 use Illuminate\Support\Carbon;
 use Illuminate\Console\Command;
 use App\Jobs\FetchRecentCryptoData;
+use Illuminate\Support\Facades\Log;
 
 class FireFetchRecent extends Command
 {
@@ -44,10 +45,10 @@ class FireFetchRecent extends Command
         try {  
             $coins = Coin::all()->pluck(['coin_id'])->toArray();
             $apiKey = env('COINGECKO_API_KEY');            
-
             FetchRecentCryptoData::dispatch($coins, $apiKey);            
             return 0;
         } catch(Exception $e) {
+            Log::error($e->getMessage());
             $this->error($e->getMessage());
             dump("error ->>" . $e->getMessage());
         }        

@@ -7,6 +7,7 @@ use GuzzleHttp\Exception\RequestException;
 use App\Services\Interfaces\HttpClientInterface;
 use App\Services\Interfaces\CacheServiceInterface;
 use App\Services\Interfaces\CoinGeckoApiServiceInterface;
+use Exception;
 
 class CoinGeckoApiService implements CoinGeckoApiServiceInterface
 {
@@ -47,17 +48,61 @@ class CoinGeckoApiService implements CoinGeckoApiServiceInterface
      * @param string $apiKey
      * @return array
      */
+    // public function fetchPriceForRange(string $coin, int $from, int $to = 10, string $apiKey): array
+    // {
+    //     $timestamp = Carbon::createFromTimestamp($from);
+    //     if ($this->cacheService->exists($coin, $timestamp)) {
+    //         Log::info("Price data for {$coin} at {$timestamp} exists in cache. Skipping API call.");            
+    //         return [];
+    //     }
+    //     $url = $this->url . "coins/{$coin}/market_chart/range?vs_currency=usd&from={$from}&to={$to}";
+    //     $response = $this->makeApiRequest($url, $apiKey);
+       
+    //     return $response['prices'];        
+    // }
+
     public function fetchPriceForRange(string $coin, int $from, int $to, string $apiKey): array
     {
-        $timestamp = Carbon::createFromTimestamp($from);
-        if ($this->cacheService->exists($coin, $timestamp)) {
-            Log::info("Price data for {$coin} at {$timestamp} exists in cache. Skipping API call.");            
-            return [];
-        }
-        $url = $this->url . "coins/{$coin}/market_chart/range?vs_currency=usd&from={$from}&to={$to}";
-        $response = $this->makeApiRequest($url, $apiKey);
-       
-        return $response['prices'];        
+        $attempts = 0;
+        $maxAttempts = 3;
+        $increment = env('RANGE_TO_INTERVAL', 15); // 15 minutes increment
+        $to += $increment * 60;
+        $response = "";
+        
+        // try {
+            while ($attempts < $maxAttempts) {
+                $timestamp = Carbon::createFromTimestamp($from);
+    
+                if ($this->cacheService->exists($coin, $timestamp)) {
+                    Log::info("Price data for {$coin} at {$timestamp} exists in cache. Skipping API call.");
+                    return [];
+                }
+    
+                $url = $this->url . "coins/{$coin}/market_chart/range?vs_currency=usd&from={$from}&to={$to}";
+                $response = $this->makeApiRequest($url, $apiKey);
+                
+                if (!empty($response['prices'])) {
+                    echo "has value for date range $coin"; dump($response['prices']);
+                    return $response['prices'];
+                    // break;
+                }
+    
+                // Double the time increment for the next request
+                $to += $increment * 60; // Convert minutes to seconds
+                $increment *= 2;  // Double the increment value
+                $attempts++;
+                dump($url, $to, $increment, $attempts, "==============");
+    
+                Log::warning("No data found, retrying with a new time range: from {$from} to {$to} (attempt {$attempts})");
+                // sleep(2);
+            }
+        // } catch(Exception $e) {
+        //     dump("call retry job", $e->getMessage());
+        //     throw new Exception($e->getMessage());
+        // }    
+
+        Log::error("Failed to retrieve prices after {$maxAttempts} attempts.");
+        return [];
     }
 
     /**
@@ -91,11 +136,11 @@ class CoinGeckoApiService implements CoinGeckoApiServiceInterface
         $response = $this->makeApiRequest($url, $apiKey);        
         
         // Store the fetched data in cache
-        if ($response) {
-            foreach ($response as $id => $coinData) {                
-                $this->cacheService->store($id, $timestamp, ['price' => $coinData['usd']]);
-            }
-        }
+        // if ($response) {
+        //     foreach ($response as $id => $coinData) {                
+        //         $this->cacheService->store($id, $timestamp, ['price' => $coinData['usd']]);
+        //     }
+        // }
 
         return $response;
     }

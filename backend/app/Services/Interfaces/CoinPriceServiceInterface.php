@@ -6,5 +6,5 @@ use Illuminate\Support\Carbon;
 interface CoinPriceServiceInterface
 {
     public function getRecents(): array;
-    public function getByRange(Carbon $date): ?array;    
+    public function getByDate(string $date): ?array;    
 }

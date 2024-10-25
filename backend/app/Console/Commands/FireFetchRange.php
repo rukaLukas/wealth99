@@ -3,9 +3,10 @@
 namespace App\Console\Commands;
 
 use Exception;
+use Illuminate\Support\Carbon;
 use Illuminate\Console\Command;
 use App\Jobs\FetchCoinDataForDate;
-use Carbon\Carbon;
+use App\Repositories\Interfaces\CryptoPriceRepositoryInterface;
 
 class FireFetchRange extends Command
 {
@@ -41,14 +42,10 @@ class FireFetchRange extends Command
     public function handle()
     {
         try {          
-            // $coin = $this->option('coin');
-            $coins = ['bitcoin']; 
-            $date = $this->option('date');            
-            // The number of days of historical data you want to fetch            
-            // $date = Carbon::createFromDate($date); 
-            // dd($date);
+            $coins = ['bitcoin', 'bitcoin-cash', 'litecoin', 'ethereum']; 
+            $date = $this->option('date'); 
+            
             $apiKey = env('COINGECKO_API_KEY');            
-
             FetchCoinDataForDate::dispatch($coins, $date, $apiKey);            
             return 0;
         } catch(Exception $e) {

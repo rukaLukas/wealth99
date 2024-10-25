@@ -14,8 +14,7 @@ class FetchRecentCryptoData extends AbstractCryptoJob
     
     protected function fetchData(CoinGeckoApiServiceInterface $service)
     {        
-        Log::info('run fetchRecentCryptoData!!!!!!');
-        dump('run fetchRecentCryptoData!!!!!!');
+        Log::info('Getting recent prices');
         return $service->fetchRecent($this->coins, $this->apiKey);
     }
 
@@ -29,16 +28,14 @@ class FetchRecentCryptoData extends AbstractCryptoJob
      */
     protected function processPrices($response, $cryptoPriceRepository, $cacheService)
     {        
+        $cacheService->store("recent_prices", null, $response);
         foreach ($response as $id => $coin) { 
             $timestamp = Carbon::now();
             $price = $coin['usd'];
             $coin = $id;
-
             // Insert price data into the database
             $cryptoPriceRepository->storePrice($coin, $price, $timestamp);
-
-            // Cache the price data in Redis
-            $cacheService->store($coin . "_recent", null, ['price' => $price]);
         }
+        Log::info('Store recent prices into cache');
     }
 }
