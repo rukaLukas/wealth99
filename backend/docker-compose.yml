@@ -6,14 +6,16 @@ services:
     container_name: 99wealth_api
     restart: unless-stopped
     tty: true
-    environment:
-      - DB_CONNECTION=pgsql
-      - DB_HOST=timescaledb
-      - DB_PORT=5432
-      - DB_DATABASE=${WEALTH_DB_DATABASE}
-      - DB_USERNAME=${WEALTH_DB_USERNAME}
-      - DB_PASSWORD=${WEALTH_DB_PASSWORD}
-      - REDIS_PASSWORD=${WEALTH_REDIS_PASSWORD}
+    # environment:
+    #   - DB_CONNECTION=pgsql
+    #   - DB_HOST=timescaledb
+    #   - DB_PORT=5432
+      # - DB_DATABASE=${WEALTH_DB_DATABASE}
+      # - DB_USERNAME=${WEALTH_DB_USERNAME}
+      # - DB_PASSWORD=${WEALTH_DB_PASSWORD}
+      # - REDIS_PASSWORD=${WEALTH_REDIS_PASSWORD}
+    env_file:
+      - .docker-env
     depends_on:
       - timescaledb    
     volumes:

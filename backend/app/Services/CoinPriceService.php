@@ -1,6 +1,7 @@
 <?php
 namespace App\Services;
 
+use Exception;
 use App\Models\Coin;
 use Illuminate\Support\Carbon;
 use App\Jobs\FetchCoinDataForDate;
@@ -22,7 +23,7 @@ class CoinPriceService implements CoinPriceServiceInterface
 
     public function getRecents(): array
     {
-        $recents = [];       
+        $recents = [];               
         if ($this->cacheService->exists('recent_prices')) {
             $recents = $this->cacheService->get('recent_prices');
         }   
@@ -33,21 +34,21 @@ class CoinPriceService implements CoinPriceServiceInterface
     public function getByDate(string $date): ?array
     {
         $date = Carbon::parse($date);
-        if ($this->cacheService->exists('bydate', $date)) {
+        if ($this->cacheService->exists('bydate', $date)) {            
             return $this->cacheService->get('bydate', $date);
-        }         
-        
+        }                 
         $coins = $this->repository->getAllCoins();        
         
         // search this values into database
         $prices = $this->repository->getByDate($coins, $date);
         
-        // if not found into database call Job to get this custom data from coinGecko Api
-        if (count($prices) === 0) {
+        // if not found into database call Job to get this custom data from coinGecko Api            
+        if (count($prices) === 0) {                
             $apiKey = env('COINGECKO_API_KEY');
             FetchCoinDataForDate::dispatch($coins, $date, $apiKey);
 
             return [
+                    "status_code" => 202,
                     "message" => "Request accepted, processing will continue",
                     "status"=> "pending",                
                     "resource_url"=> "/api/v1/prices/{$date}",
@@ -56,7 +57,7 @@ class CoinPriceService implements CoinPriceServiceInterface
         }
 
         $this->cacheService->store('bydate', $date, $prices);
-       
-        return $prices;
+    
+        return $prices;        
     }
 }

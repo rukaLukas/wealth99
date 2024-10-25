@@ -36,7 +36,9 @@ class CryptoPriceController extends Controller
         }
               
         $prices = $this->service->getByDate($datetime);
+
+        $statusCode = isset($prices["status_code"]) ? $prices["status_code"] : 200;
         
-        return response()->json($prices, 200, [], JSON_UNESCAPED_SLASHES);        
+        return response()->json($prices, $statusCode, [], JSON_UNESCAPED_SLASHES);        
     }
 }

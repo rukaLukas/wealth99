@@ -20,6 +20,11 @@ class FetchCoinDataForDate extends AbstractCryptoJob
         $this->dateTime = $dateTime;              
     }
 
+    public function getDate()
+    {
+        return $this->dateTime;
+    }
+
     protected function fetchData(CoinGeckoApiServiceInterface $service)
     {
         try {

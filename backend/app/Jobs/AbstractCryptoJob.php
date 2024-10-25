@@ -26,6 +26,16 @@ abstract class AbstractCryptoJob implements ShouldQueue
         $this->apiKey = $apiKey;       
     }
 
+    public function getCoins()
+    {
+        return $this->coins;
+    }    
+
+    public function getApiKey()
+    {
+        return $this->apiKey;
+    }
+
     public function handle()
     {       
         // Resolve services
