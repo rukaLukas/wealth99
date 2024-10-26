@@ -31,7 +31,7 @@ php artisan db:seed
 
 service cron start
 
-service supervisor start
+# service supervisor start
 
 # Keep the container running
 exec "$@"

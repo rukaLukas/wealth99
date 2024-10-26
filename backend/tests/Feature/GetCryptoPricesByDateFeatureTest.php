@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 use App\Jobs\FetchCoinDataForDate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Bus;
+use Mockery;
 
 class GetCryptoPricesByDateFeatureTest extends TestCase
 {
@@ -15,48 +16,32 @@ class GetCryptoPricesByDateFeatureTest extends TestCase
     {
         parent::setUp();        
         Bus::fake();
-
-        $cacheServiceMock = \Mockery::mock(\App\Services\Interfaces\CacheServiceInterface::class);
-        $cacheServiceMock->shouldReceive('exists')->andReturn(false);
-        $cacheServiceMock->shouldReceive('get')->andReturn(null);
-        $cacheServiceMock->shouldReceive('store')->andReturn(true);
-        $this->app->instance(\App\Services\Interfaces\CacheServiceInterface::class, $cacheServiceMock);
-        $this->resetDatabase();
+        $this->mockCacheService();
+        $this->truncateTables();
     }
 
     /** @test */
     public function it_returns_prices_for_a_valid_datetime()
     {
-        // Create test data
         $date = Carbon::now()->subDays(5)->format('Y-m-d H:i:s');
+        $this->mockRepositoryToReturnPrices($date);
 
-        // Mock repository to return prices for the date
-        $this->mockRepoToReturnPrices($date);
-      
-        // Make request to the API with the valid date
-        $response = $this->getJson("{$this->url}/{$date}");
+        $response = $this->getJson("/api/v1/prices/{$date}");
 
         $response->assertStatus(200)
-                    ->assertJsonStructure([
-                        '*' => ['symbol', 'price', 'last_updated_at'],
-                    ]);
+                 ->assertJsonStructure(['*' => ['symbol', 'price', 'last_updated_at']]);
     }
 
     /** @test */
-    public function test_it_dispatches_job_and_returns_202_for_unavailable_data()
-    {    
-        // Fake the bus to prevent real dispatching
+    public function it_dispatches_job_and_returns_202_for_unavailable_data()
+    {
         Bus::fake();
-
-        // Define test data
         $coins = ['bitcoin', 'ethereum'];
         $date = '2024-10-22 10:30:00';
         $apiKey = 'your_test_api_key';
 
-        // Dispatch the job
         FetchCoinDataForDate::dispatch($coins, $date, $apiKey);
 
-        // Assert that the job was dispatched with the correct arguments
         Bus::assertDispatched(FetchCoinDataForDate::class, function ($job) use ($coins, $date, $apiKey) {
             return $job->getCoins() === $coins &&
                    $job->getDate() === $date &&
@@ -65,57 +50,50 @@ class GetCryptoPricesByDateFeatureTest extends TestCase
     }
 
     /** @test */
-    public function it_dispatches_job_and_returns_202_for_unavailable_data()
+    public function it_triggers_job_and_returns_202_when_data_unavailable()
     {
-        // Create test data with a valid datetime
         $date = Carbon::now()->subDays(5)->format('Y-m-d H:i:s');
+        $this->mockRepositoryToReturnNoPrices($date);
 
-        // Mock repository to return no prices, triggering the job dispatch
-        $this->mockRepoToReturnNoPrices($date);
-
-        // Make request to the API
-        $response = $this->getJson("{$this->url}/{$date}");
+        $response = $this->getJson("/api/v1/prices/{$date}");
 
         $response->assertStatus(202)
-                    ->assertJson([
-                        'message' => 'Request accepted, processing will continue',
-                        'status' => 'pending',
-                        'resource_url' => "/api/v1/prices/{$date}",
-                        'estimated_time_seconds' => 600,
-                    ]);
+                 ->assertJson([
+                     'message' => 'Request accepted, processing will continue',
+                     'status' => 'pending',
+                     'resource_url' => "/api/v1/prices/{$date}",
+                     'estimated_time_seconds' => 600,
+                 ]);
     }
 
     /** @test */
     public function it_returns_error_for_invalid_datetime_format()
     {
-        // Invalid datetime format
         $invalidDate = '2024-10-99';
-
-        // Make request to the API with the invalid datetime
-        $response = $this->getJson("{$this->url}/{$invalidDate}");
+        $response = $this->getJson("/api/v1/prices/{$invalidDate}");
 
         $response->assertStatus(400)
-                    ->assertJson([
-                        'error' => 'Invalid datetime format. Expected format: Y-m-d H:i:s',
-                    ]);
+                 ->assertJson(['error' => 'Invalid datetime format. Expected format: Y-m-d H:i:s']);
     }
 
-    protected function migrateFreshUsing()
+    private function mockCacheService()
     {
-        $this->artisan('migrate:fresh', [
-            '--drop-views' => true, 
-        ]);
+        $cacheServiceMock = Mockery::mock(\App\Services\Interfaces\CacheServiceInterface::class);
+        $cacheServiceMock->shouldReceive('exists')->andReturn(false);
+        $cacheServiceMock->shouldReceive('get')->andReturn(null);
+        $cacheServiceMock->shouldReceive('store')->andReturn(true);
+        $this->app->instance(\App\Services\Interfaces\CacheServiceInterface::class, $cacheServiceMock);
     }
 
-    public function resetDatabase()
+    private function truncateTables()
     {
         DB::statement('TRUNCATE TABLE crypto_prices RESTART IDENTITY CASCADE');
-        DB::statement('TRUNCATE TABLE coins RESTART IDENTITY CASCADE');      
+        DB::statement('TRUNCATE TABLE coins RESTART IDENTITY CASCADE');
     }
 
-    private function mockRepoToReturnPrices($date)
+    private function mockRepositoryToReturnPrices($date)
     {        
-        $mockRepo = \Mockery::mock(\App\Repositories\Interfaces\CryptoPriceRepositoryInterface::class);
+        $mockRepo = Mockery::mock(\App\Repositories\Interfaces\CryptoPriceRepositoryInterface::class);
         $mockRepo->shouldReceive('getAllCoins')->andReturn(Coin::all()->pluck('coin_id')->toArray());
         $mockRepo->shouldReceive('getByDate')->withAnyArgs()->andReturn([
             [
@@ -127,17 +105,17 @@ class GetCryptoPricesByDateFeatureTest extends TestCase
         $this->app->instance(\App\Repositories\Interfaces\CryptoPriceRepositoryInterface::class, $mockRepo);
     }
 
-    private function mockRepoToReturnNoPrices($date)
+    private function mockRepositoryToReturnNoPrices($date)
     {
-        $mockRepo = \Mockery::mock(\App\Repositories\Interfaces\CryptoPriceRepositoryInterface::class);
+        $mockRepo = Mockery::mock(\App\Repositories\Interfaces\CryptoPriceRepositoryInterface::class);
         $mockRepo->shouldReceive('getAllCoins')->andReturn(Coin::all()->pluck('coin_id')->toArray());
         $mockRepo->shouldReceive('getByDate')->withAnyArgs()->andReturn([]);
         $this->app->instance(\App\Repositories\Interfaces\CryptoPriceRepositoryInterface::class, $mockRepo);
-    }    
+    }
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 }
