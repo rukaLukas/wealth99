@@ -10,5 +10,5 @@ Route::group(['prefix' => '/v1'], function () {
     });
 
     Route::get('/prices', [CryptoPriceController::class, 'recent']);
-    Route::get('/prices/{datetime}', [CryptoPriceController::class, 'getPricesByDate']);    
+    Route::get('/prices/{datetime}', [CryptoPriceController::class, 'getPricesByDate']);
 });

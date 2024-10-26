@@ -2,43 +2,44 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use App\Http\Requests\DateTimeRequest;
+use Illuminate\Http\JsonResponse;
+use App\Validators\DateValidatorInterface;
 use App\Services\Interfaces\CoinPriceServiceInterface;
-use Illuminate\Support\Facades\Validator;
 
 class CryptoPriceController extends Controller
-{    
-    protected $service;
+{
+    protected $coinPriceService;
+    protected $statusResolver;
+    protected $dateValidator;
 
-    public function __construct(CoinPriceServiceInterface $service)
-    {       
-        $this->service = $service;
+    public function __construct(
+        CoinPriceServiceInterface $coinPriceService,        
+        DateValidatorInterface $dateValidator
+    ) {       
+        $this->coinPriceService = $coinPriceService;        
+        $this->dateValidator = $dateValidator;
     }
 
-    public function recent()
+    public function recent(): JsonResponse
     {     
-        $prices = $this->service->getRecents();       
-        return response($prices, 200);
+        $recentPrices = $this->coinPriceService->getRecents();
+        return response()->json($recentPrices, 200);
     }
 
-    public function getPricesByDate(string $datetime)
+    public function getPricesByDate($datetime): JsonResponse
     {
-        $validator = Validator::make(['datetime' => $datetime], [
-            'datetime' => 'required|date_format:Y-m-d H:i:s',
-        ]);
-
-        if ($validator->fails()) {
+        if (!$this->dateValidator->isValid($datetime)) {
             return response()->json([
                 'error' => 'Invalid datetime format. Expected format: Y-m-d H:i:s'
             ], 400);
         }
-              
-        $prices = $this->service->getByDate($datetime);
 
-        $statusCode = isset($prices["status_code"]) ? $prices["status_code"] : 200;
-        
-        return response()->json($prices, $statusCode, [], JSON_UNESCAPED_SLASHES);        
+        $prices = $this->coinPriceService->getByDate($datetime);
+        return response()->json($prices, $this->getStatusCode($prices), [], JSON_UNESCAPED_SLASHES);
+    }
+
+    private function getStatusCode(array $prices): int
+    {
+        return $prices["status_code"] ?? 200;
     }
 }

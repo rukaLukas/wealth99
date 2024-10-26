@@ -14,6 +14,8 @@ use App\Services\Interfaces\CacheServiceInterface;
 use App\Services\Interfaces\CoinPriceServiceInterface;
 use App\Services\Interfaces\CoinGeckoApiServiceInterface;
 use App\Repositories\Interfaces\CryptoPriceRepositoryInterface;
+use App\Validators\DateValidator;
+use App\Validators\DateValidatorInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -42,5 +44,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(CryptoPriceRepositoryInterface::class, CryptoPriceRepository::class);
         $this->app->bind(CacheServiceInterface::class, CacheService::class);
         $this->app->bind(CoinPriceServiceInterface::class, CoinPriceService::class);
+        $this->app->bind(DateValidatorInterface::class, DateValidator::class);
     }
 }

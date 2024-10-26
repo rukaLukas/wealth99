@@ -59,6 +59,7 @@ class GetCryptoPricesByDateFeatureTest extends TestCase
 
         $response->assertStatus(202)
                  ->assertJson([
+                     'status_code' => 202,
                      'message' => 'Request accepted, processing will continue',
                      'status' => 'pending',
                      'resource_url' => "/api/v1/prices/{$date}",

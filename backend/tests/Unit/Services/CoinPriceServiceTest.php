@@ -56,8 +56,8 @@ class CoinPriceServiceTest extends TestCase
             ->andReturn(false);
 
         $repositoryMock = \Mockery::mock(CryptoPriceRepositoryInterface::class);
-        $repositoryMock->shouldReceive('getAllCoins')->once()->andReturn(['bitcoin']);
-        $repositoryMock->shouldReceive('getByDate')->with(['bitcoin'], $formattedDate)->andReturn([]);
+        $repositoryMock->shouldReceive('getAllCoins')->andReturn(['bitcoin', 'ethereum']);
+        $repositoryMock->shouldReceive('getByDate')->with(['bitcoin', 'ethereum'], $formattedDate)->andReturn([]);
 
         Queue::fake();
         $service = new CoinPriceService($cacheServiceMock, $repositoryMock);
