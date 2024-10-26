@@ -81,6 +81,7 @@ class CoinGeckoApiServiceTest extends TestCase
         $precision = 8;  // Set a fixed precision for consistency
 
         $url = "https://api.coingecko.com/api/v3/simple/price?ids={$coinsString}&vs_currencies=usd&precision={$precision}";
+        // $url = "#https://api\.coingecko\.com/api/v3/simple/price\?ids=[^&]+&vs_currencies=usd&precision=8#";      
 
         $this->httpClientMock
             ->shouldReceive('get')
@@ -89,9 +90,16 @@ class CoinGeckoApiServiceTest extends TestCase
             ->andReturn([
                 $coins[0] => ['usd' => $this->faker->randomFloat(2, 1000, 50000)],
                 $coins[1] => ['usd' => $this->faker->randomFloat(2, 1000, 50000)]
-            ]);
+            ]);   
+        // dd($url, '#https://api\.coingecko\.com/api/v3/simple/price\?ids=[^&]+&vs_currencies=usd&precision=8#');
+        // $this->httpClientMock->shouldReceive('get')
+        //     ->with(Mockery::pattern($url), [
+        //         'headers' => ['x-cg-demo-api-key' => $this->apiKey]
+        //     ])
+        //     ->andReturn(['bitcoin' => ['usd' =>  $this->faker->randomFloat(2, 1000, 50000)], 'ethereum' => ['usd' => $this->faker->randomFloat(2, 1000, 50000)]]);         
 
         $response = $this->service->fetchRecent($coins, $this->apiKey);
+        // dd(__LINE__);
 
         $this->assertIsArray($response);
     }
