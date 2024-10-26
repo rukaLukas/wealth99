@@ -16,9 +16,9 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\Event' => [
             'App\Listeners\EventListener',
         ],
-        // \Illuminate\Queue\Events\JobProcessed::class => [
-        //     \App\Listeners\ClearRecentQueue::class,
-        // ],       
+        \Illuminate\Queue\Events\JobProcessed::class => [
+            \App\Listeners\ClearRecentQueue::class,
+        ],       
     ];
 
     /**

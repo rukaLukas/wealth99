@@ -10,8 +10,7 @@ use App\Services\Interfaces\CoinGeckoApiServiceInterface;
 class FetchRecentCryptoData extends AbstractCryptoJob
 {
     public $tries = 3;
-    public $retryAfter = 5;
-    public $queue = 'recent';
+    public $timeout = 200;
     
     protected function fetchData(CoinGeckoApiServiceInterface $service)
     {        

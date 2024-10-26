@@ -29,12 +29,12 @@ class Kernel extends ConsoleKernel
     {
         try {
             Log::info("initializing schedule");
-            $schedule->call(function () {
+            $schedule->call(function () {                
                 $coins = Coin::all()->pluck(['coin_id'])->toArray();
                 $apiKey = env('COINGECKO_API_KEY');
         
                 // Dispatch the job with arguments
-                \App\Jobs\FetchRecentCryptoData::dispatch($coins, $apiKey)->onQueue('recent');
+                \App\Jobs\FetchRecentCryptoData::dispatch($coins, $apiKey);
             })->name('fetch-recent-crypto-data')
                 ->everyMinute()
                 ->withoutOverlapping();
