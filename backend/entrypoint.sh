@@ -11,7 +11,7 @@ fi
 # Copy .env.example to .env if .env does not exist
 if [ ! -f ".env" ]; then
   echo "Copying .env.example to .env..."
-  cp .env.example .env
+  cp .env.template .env
   php artisan key:generate
 fi
 
