@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \  
     postgresql-client \
     cron \
+    supervisor \
     gettext \
     vim
 
@@ -26,6 +27,8 @@ WORKDIR /var/www
 
 # Copy existing application directory contents to the working directory
 COPY . /var/www
+
+COPY supervisor-laravel-worker.conf /etc/supervisor/conf.d/supervisor-laravel-worker.conf
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
