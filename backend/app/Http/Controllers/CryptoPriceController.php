@@ -21,7 +21,7 @@ class CryptoPriceController extends Controller
     }
 
     public function recent(): JsonResponse
-    {     
+    {             
         $recentPrices = $this->coinPriceService->getRecents();
         return response()->json($recentPrices, 200);
     }

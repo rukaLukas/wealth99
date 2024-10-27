@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Coin;
 use Illuminate\Support\Carbon;
 use App\Jobs\FetchCoinDataForDate;
+use App\Jobs\FetchRecentCryptoData;
 use App\Services\Interfaces\CacheServiceInterface;
 use App\Services\Interfaces\CoinPriceServiceInterface;
 use App\Repositories\Interfaces\CryptoPriceRepositoryInterface;
@@ -24,9 +25,14 @@ class CoinPriceService implements CoinPriceServiceInterface
 
     public function getRecents(): array
     {
-        return $this->cacheService->exists(self::CACHE_KEY_RECENT) 
-            ? $this->cacheService->get(self::CACHE_KEY_RECENT) 
-            : [];
+        $cacheKey = 'recent_' . Carbon::now('UTC')->format('Y-m-d-H:i');
+        if ($this->cacheService->exists($cacheKey)) {              
+            return $this->cacheService->get($cacheKey);
+        }
+        
+        $this->dispatchFetchJobRecent();
+        
+        return $this->cacheService->get(self::CACHE_KEY_RECENT);
     }
     
     public function getByDate(string $date): ?array
@@ -40,7 +46,7 @@ class CoinPriceService implements CoinPriceServiceInterface
         $prices = $this->fetchPricesFromDatabaseOrApi($parsedDate);               
 
         if ($prices === null) {            
-            return $this->dispatchFetchJob($parsedDate);
+            return $this->dispatchFetchJobForDate($parsedDate);
         }
 
         $this->cacheService->store(self::CACHE_KEY_BY_DATE, $parsedDate, $prices);
@@ -56,7 +62,7 @@ class CoinPriceService implements CoinPriceServiceInterface
         return count($prices) > 0 ? $prices : null;
     }
 
-    private function dispatchFetchJob(Carbon $date): array
+    private function dispatchFetchJobForDate(Carbon $date): array
     {
         FetchCoinDataForDate::dispatch($this->repository->getAllCoins(), $date, env('COINGECKO_API_KEY'));
 
@@ -67,5 +73,10 @@ class CoinPriceService implements CoinPriceServiceInterface
             "resource_url" => "/api/v1/prices/{$date}",
             "estimated_time_seconds" => 600,
         ];
+    }
+
+    private function dispatchFetchJobRecent(): void
+    {
+        FetchRecentCryptoData::dispatch($this->repository->getAllCoins(), env('COINGECKO_API_KEY'));
     }
 }

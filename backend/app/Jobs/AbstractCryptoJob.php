@@ -19,6 +19,8 @@ abstract class AbstractCryptoJob implements ShouldQueue
 
     protected $coins;
     protected $apiKey;
+    protected $cacheService;
+    protected $cryptoPriceRepository;
 
     public function __construct(array $coins, string $apiKey)
     {
@@ -39,15 +41,15 @@ abstract class AbstractCryptoJob implements ShouldQueue
     public function handle()
     {       
         // Resolve services
-        $cryptoPriceRepository = app(CryptoPriceRepositoryInterface::class);
-        $cacheService = app(CacheServiceInterface::class);
+        $this->cryptoPriceRepository = app(CryptoPriceRepositoryInterface::class);
+        $this->cacheService = app(CacheServiceInterface::class);
         $coinGeckoApiService = app(CoinGeckoApiServiceInterface::class);
 
         // Fetch prices using the custom logic defined in the subclasses
         $prices = $this->fetchData($coinGeckoApiService);
 
         if ($prices) {
-            $this->processPrices($prices, $cryptoPriceRepository, $cacheService);
+            $this->processPrices($prices, $this->cryptoPriceRepository, $this->cacheService);
             return;
         } else {
             Log::error("Failed to fetch valid data.");

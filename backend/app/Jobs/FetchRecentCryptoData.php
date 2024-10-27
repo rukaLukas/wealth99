@@ -29,6 +29,8 @@ class FetchRecentCryptoData extends AbstractCryptoJob
     protected function processPrices($response, $cryptoPriceRepository, $cacheService)
     {        
         $cacheService->store('recent_prices', null, $response);
+        $cacheKey = 'recent_' . Carbon::now('UTC')->format('Y-m-d-H:i');
+        $cacheService->store($cacheKey, null, $response);
         foreach ($response as $id => $coin) {
             $cryptoPriceRepository->storePrice($id, $coin['usd'], Carbon::now());
         }

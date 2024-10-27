@@ -26,6 +26,12 @@ class RouteServiceProvider extends ServiceProvider
         //
 
         parent::boot();
+
+        // app('router')->fallback(function(){
+        //     return response()->json([
+        //         'message' => 'Route not found',
+        //     ], 404);
+        // });
     }
 
     /**

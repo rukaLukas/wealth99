@@ -15,13 +15,16 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp(); 
-        // dd(env('DB_DATABASE')); 
-        // config(['database.connections.pgsql.host' => 'timescaledb_test']);
+        // dump(env('DB_DATABASE'), env('DB_CONNECTION')); 
+        // $this->app->loadEnvironmentFrom('.env.testing');
+        // config(['database.connections.pgsql.host' => 'timescaledb']);
         // config(['database.connections.pgsql.port' => '5432']);
         if (!Schema::hasTable('migrations')) {
             Artisan::call('key:generate', ['--env' => 'testing']);
             Artisan::call('migrate', ['--env' => 'testing']);
+            Artisan::call('db:seed', ['--env' => 'testing']);
         } 
+        // Artisan::call('db:seed', ['--env' => 'testing']);
         $this->url = '/api/v1/prices';
     }
 }

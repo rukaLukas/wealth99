@@ -38,52 +38,47 @@ class CoinGeckoApiService implements CoinGeckoApiServiceInterface
         return $response;        
     }
 
-    // public function fetchPriceForRange(string $coin, int $from, int $to, string $apiKey): array
-    // {
-    //     $attempts = 0;
-    //     $maxAttempts = 3;
-    //     $increment = env('RANGE_TO_INTERVAL', 15); // 15 minutes increment
-    //     $to += $increment * 60;
-    //     $response = "";
-        
-    //     while ($attempts < $maxAttempts) {
-    //         $timestamp = Carbon::createFromTimestamp($from);
-
-    //         if ($this->cacheService->exists($coin, $timestamp)) {
-    //             Log::info("Price data for {$coin} at {$timestamp} exists in cache. Skipping API call.");
-    //             return [];
-    //         }
-
-    //         // $url = $this->url . "coins/{$coin}/market_chart/range?vs_currency=usd&from={$from}&to={$to}";
-    //         $url = $this->generateUrl("coins/{$coin}/market_chart/range", [
-    //             'vs_currency' => 'usd',
-    //             'from' => $from,
-    //             'to' => $to
-    //         ]);
-    //         $response = $this->makeApiRequest($url, $apiKey);
-            
-    //         if (!empty($response['prices'])) {
-    //             echo "has value for date range $coin"; dump($response['prices']);
-    //             return $response['prices'];
-    //             // break;
-    //         }
-
-    //         // Double the time increment for the next request
-    //         $to += $increment * 60; // Convert minutes to seconds
-    //         $increment *= 2;  // Double the increment value
-    //         $attempts++;
-                
-    //         Log::warning("No data found, retrying with a new time range: from {$from} to {$to} (attempt {$attempts})");             
-    //     }  
-
-    //     Log::error("Failed to retrieve prices after {$maxAttempts} attempts.");
-    //     return [];
-    // }
-
     public function fetchPriceForRange(string $coin, int $from, int $to, string $apiKey): array
     {
-        return $this->getPriceWithRetry($coin, $from, $to, $apiKey, 3, env('RANGE_TO_INTERVAL', 15));
+        $attempts = 0;
+        $maxAttempts = 3;
+        $increment = env('RANGE_TO_INTERVAL', 30); // X minutes increment
+        $to += $increment * 60;
+        $response = "";
+        
+        while ($attempts < $maxAttempts) {
+            $timestamp = Carbon::createFromTimestamp($from);
+
+            if ($this->cacheService->exists($coin, $timestamp)) {
+                Log::info("Price data for {$coin} at {$timestamp} exists in cache. Skipping API call.");
+                return $this->cacheService->get($coin, $timestamp);
+            }
+
+            $url = $this->baseUrl . "coins/{$coin}/market_chart/range?vs_currency=usd&from={$from}&to={$to}";
+            $response = $this->makeApiRequest($url, $apiKey);
+            
+            if (!empty($response['prices'])) {
+                echo "has value for date range $coin"; dump($response['prices']);
+                return $response['prices'];
+                // break;
+            }
+
+            // Double the time increment for the next request
+            $to += $increment * 60; // Convert minutes to seconds
+            $increment *= 2;  // Double the increment value
+            $attempts++;
+                
+            Log::warning("No data found {$coin}, retrying with a new time range: from {$from} to {$to} (attempt {$attempts})");             
+        }  
+
+        Log::error("Failed to retrieve prices after {$maxAttempts} attempts.");
+        return [];
     }
+
+    // public function fetchPriceForRange(string $coin, int $from, int $to, string $apiKey): array
+    // {
+    //     return $this->getPriceWithRetry($coin, $from, $to, $apiKey, 3, env('RANGE_TO_INTERVAL', 15));
+    // }
 
     private function getPriceWithRetry(string $coin, int $from, int $to, string $apiKey, int $maxAttempts, int $initialIncrement): array
     {

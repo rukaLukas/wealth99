@@ -9,15 +9,12 @@ class CacheService implements CacheServiceInterface
 {
     public function exists(string $symbol, Carbon $date = null): bool
     {
-        // $key = "{$symbol}:{$date->format('Y-m-d-H:i')}";
-        // $key = is_null($date) ? "{$symbol}" : "{$symbol}:{$date->format('Y-m-d-H:i')}";
         $key = $this->getKey($symbol, $date);
         return Redis::exists($key);
     }
 
     public function store(string $symbol, Carbon $date = null, array $data): void
     {
-        // $key = is_null($date) ? "{$symbol}" : "{$symbol}:{$date->format('Y-m-d-H:i')}";
         $key = $this->getKey($symbol, $date);
         Redis::set($key, json_encode($data));
     }
@@ -31,7 +28,6 @@ class CacheService implements CacheServiceInterface
      */
     public function get(string $symbol, Carbon $timestamp = null): ?array
     {
-        // $key = is_null($timestamp) ? "{$symbol}" : "{$symbol}:{$timestamp->format('Y-m-d-H:i')}";
         $key = $this->getKey($symbol, $timestamp);
         $data = Redis::get($key);
 

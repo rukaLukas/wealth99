@@ -3,7 +3,7 @@
 # Check if vendor directory exists
 if [ ! -d "vendor" ]; then
   echo "Installing composer dependencies..."
-  composer install --optimize-autoloader --no-dev
+  composer install --optimize-autoloader --no-interaction
 else
   echo "Composer dependencies are already installed."
 fi
@@ -22,7 +22,7 @@ chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 ./wait-for-it.sh timescaledb --timeout=60 --strict -- echo "TimescaleDB is up and running"
 
 # Run Laravel migrations and hypertable creation
-php artisan migrate --force
+php artisan migrate
 php artisan convert:hypertable
 php artisan db:seed
 
@@ -32,9 +32,9 @@ php artisan route:cache
 php artisan view:cache
 
 # RUN setup cron
-./setup_cron.sh
+# ./setup_cron.sh
 
-service cron start
+# service cron start
 
 service supervisor start
 

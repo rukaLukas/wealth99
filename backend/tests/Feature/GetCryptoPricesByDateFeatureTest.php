@@ -14,10 +14,12 @@ class GetCryptoPricesByDateFeatureTest extends TestCase
 {
     protected function setUp(): void
     {
-        parent::setUp();        
+        parent::setUp();
         Bus::fake();
         $this->mockCacheService();
         $this->truncateTables();
+
+        // dd(env('DB_PASSWORD'), env('DB_DATABASE'), env('APP_ENV'), env('CACHE_DRIVER'));
     }
 
     /** @test */
@@ -88,8 +90,14 @@ class GetCryptoPricesByDateFeatureTest extends TestCase
 
     private function truncateTables()
     {
+        // dump(DB::connection());
+        // DB::enableQueryLog();
+        if (app()->environment('testing')) {
+            // dump(__LINE__);
         DB::statement('TRUNCATE TABLE crypto_prices RESTART IDENTITY CASCADE');
-        DB::statement('TRUNCATE TABLE coins RESTART IDENTITY CASCADE');
+        // DB::statement('TRUNCATE TABLE coins RESTART IDENTITY CASCADE');
+        }
+        // dd(DB::getQueryLog());
     }
 
     private function mockRepositoryToReturnPrices($date)

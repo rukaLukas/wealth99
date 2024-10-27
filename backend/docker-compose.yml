@@ -43,20 +43,22 @@ services:
       - app-network
     volumes:
       - ${WEALTH_TIMESCALEDB_VOLUME}:/var/lib/postgresql/data
+      - ./init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh
+
   
-  timescaledb_test:
-    image: timescale/timescaledb:latest-pg14
-    container_name: 99wealth_timescaledb_test
-    environment:
-      POSTGRES_DB: 99wealth_test
-      POSTGRES_USER: ${WEALTH_DB_USERNAME}
-      POSTGRES_PASSWORD: ${WEALTH_DB_PASSWORD}
-    ports:
-      - "5433:5432"
-    networks:
-      - app-network
-    volumes:
-      - ./db_test:/var/lib/postgresql/data
+  # timescaledb_test:
+  #   image: timescale/timescaledb:latest-pg14
+  #   container_name: 99wealth_timescaledb_test
+  #   environment:
+  #     POSTGRES_DB: 99wealth_test
+  #     POSTGRES_USER: ${WEALTH_DB_USERNAME}
+  #     POSTGRES_PASSWORD: ${WEALTH_DB_PASSWORD}
+  #   ports:
+  #     - "5433:5432"
+  #   networks:
+  #     - app-network
+  #   volumes:
+  #     - ./db_test:/var/lib/postgresql/data
   
 
   redis:
