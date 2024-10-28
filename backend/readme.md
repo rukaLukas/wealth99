@@ -1,4 +1,3 @@
-[Insomnia-All_2024-10-28.json](https://github.com/user-attachments/files/17538961/Insomnia-All_2024-10-28.json)# Project Setup
 
 ## Prerequisites
 
