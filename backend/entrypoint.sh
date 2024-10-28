@@ -10,8 +10,9 @@ fi
 
 # Copy .env.example to .env if .env does not exist
 if [ ! -f ".env" ]; then
-  echo "Copying .env.example to .env..."
+  echo "Copying .env.template to .env..."
   cp .env.template .env
+  sleep 2
   php artisan key:generate
 fi
 
@@ -27,9 +28,9 @@ php artisan convert:hypertable
 php artisan db:seed
 
 # Optimize
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# php artisan config:cache
+# php artisan route:cache
+# php artisan view:cache
 
 # RUN setup cron
 # ./setup_cron.sh
@@ -37,6 +38,9 @@ php artisan view:cache
 # service cron start
 
 service supervisor start
+
+sleep 2
+php artisan fire:recent
 
 # Keep the container running
 exec "$@"

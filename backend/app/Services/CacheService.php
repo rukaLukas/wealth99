@@ -13,10 +13,10 @@ class CacheService implements CacheServiceInterface
         return Redis::exists($key);
     }
 
-    public function store(string $symbol, Carbon $date = null, array $data): void
+    public function store(string $symbol, Carbon $date = null, array $data, ?int $duration = 600): void
     {
         $key = $this->getKey($symbol, $date);
-        Redis::set($key, json_encode($data));
+        Redis::set($key, json_encode($data), 'EX', $duration);
     }
 
     /**

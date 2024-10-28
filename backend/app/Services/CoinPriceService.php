@@ -49,7 +49,7 @@ class CoinPriceService implements CoinPriceServiceInterface
             return $this->dispatchFetchJobForDate($parsedDate);
         }
 
-        $this->cacheService->store(self::CACHE_KEY_BY_DATE, $parsedDate, $prices);
+        $this->cacheService->store(self::CACHE_KEY_BY_DATE, $parsedDate, $prices, 432000); // store for one 5 days
 
         return $prices;
     }
